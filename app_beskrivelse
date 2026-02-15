@@ -1,0 +1,54 @@
+MyFinance - app beskrivelse
+
+MyFinance er en webapplikation til privat budget, overblik og planlaegning af oekonomi.
+Appen er bygget med fokus paa, at en bruger hurtigt kan indtaste tal, se konsekvenser og sammenligne scenarier.
+
+Hvad appen kan:
+
+1. Budgetside
+- Opret og rediger et fuldt maanedsbudget fordelt paa kort som:
+  Indtaegter, Bolig, Transport, Oevrige faste, Formueforudsaetninger og Pension.
+- Drag-and-drop af kort for at aendre raekkefolge.
+- Mulighed for at minimere kort (fold sammen).
+- Import og eksport af budgetdata via Excel.
+- Visuel feedback ved succesfuld import.
+- Sidebar med noegletal, sundhedsscore og indsigt.
+- Dark mode support.
+
+2. Overblikside
+- Viser samlet oekonomisk overblik baseret paa budgetdata.
+- Top-noegletal (indkomst, udgifter, raadighedsbelob, formue).
+- Flere diagrammer/grafer, fx:
+  formue-trend, udgiftsfordeling, indkomst vs udgift, topudgifter m.fl.
+- Placeholder visning hvis der endnu ikke er indtastet budgetdata.
+- Dark mode support.
+
+3. Maal-side
+- Opret personlige oekonomiske maal (fx noedbuffer, ferie, boligopsparing).
+- Beregner forventet tid til maal, forventet maaldato og afkast.
+- Viser relevante noegletal pr. maal.
+- Import/eksport af maal via Excel.
+- Dark mode support.
+
+4. Rapporter-side
+- Importer flere budgetfiler og sammenlign dem side om side.
+- Viser kort med noegletal for hver rapport.
+- Sammenligner bl.a. raadighedsbelob, formuevaekst og balance-score.
+- Husstandstyper kan bruges til vurdering af "mest balanceret" budget.
+- Dark mode support.
+
+5. Tilbuds-side (REMA 1000)
+- Henter ugens tilbud fra REMA 1000-kilde via appens API.
+- Viser tilbudskort med billeder og pris.
+- Brugeren kan klikke varer til en indkoebsliste.
+- Knap til automatisk at danne indkoebsliste.
+- Indkoebsliste kan kopieres til udklipsholder og downloades som PDF.
+- Dark mode support.
+
+6. Navigation og brugeroplevelse
+- Top-navbar med navigation mellem alle sider.
+- Global dark mode-knap i navbaren (tema gaelder paa tvaers af sider).
+- Maskot/guide, som kan gennemgaa appens centrale omraader.
+
+Kort sagt:
+MyFinance samler budgettering, visualisering, maalsaetning, rapportsammenligning og dagligvareplanlaegning i samme webapp.

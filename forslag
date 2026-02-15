@@ -1,0 +1,43 @@
+# Forslag til videreudvikling af MyFinance
+
+1. Brugerkonti og login
+- Gem budgetter pr. bruger i database (fx Supabase/Firebase).
+- Mulighed for flere budget-profiler (fx "Hjem", "Ferie", "Bil").
+
+2. Mål og delmål
+- Sæt konkrete mål: fx "100.000 kr i opsparing".
+- Vis fremdrift i procent og forventet dato for målopfyldelse.
+
+3. Historik og versioner
+- Gem månedlige snapshots automatisk.
+- Sammenlign "nu" vs "sidste måned" vs "sidste år".
+
+4. Bedre rapporter
+- PDF-eksport af overblikssiden.
+- Delbart link til rapport (read-only).
+
+5. Smarte indsigter
+- AI-forslag til besparelser ud fra mønstre.
+- Advarsler ved høj gældsprocent eller faldende rådighedsbeløb.
+
+6. Kategorier og tags
+- Brugertilpassede udgiftskategorier.
+- Tags på poster (fx "børn", "bil", "bolig", "fritid").
+
+7. Avancerede diagrammer
+- Heatmap over udgifter måned-for-måned.
+- Sankey-diagram for "indtægt -> udgifter -> opsparing".
+- Scenarie-sammenligning side-by-side.
+
+8. Mobiloplevelse
+- Kompakt "kortvisning" specielt til mobil.
+- Sticky handlingsknapper til hurtig dataindtastning.
+
+9. Integrationer
+- Bank-import (CSV/API) med automatisk mapping.
+- Kalender-integration til faste betalinger.
+
+10. Kvalitet og drift
+- E2E-tests (Playwright) og komponenttests.
+- CI/CD pipeline med lint/test/build på pull requests.
+

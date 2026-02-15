@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MyFinance
 
-## Getting Started
+MyFinance er en Next.js-app til privat budget, økonomisk overblik og prognoser.
 
-First, run the development server:
+## Funktioner
+
+- Budgetsektioner for:
+  - Indtægter
+  - Bolig
+  - Transport
+  - Øvrige faste udgifter
+- Drag-and-drop sortering af budgetkort
+- Import/eksport af budgetdata (inkl. Excel/CSV-understøttelse i setup)
+- Formueforudsætninger:
+  - Opsparing
+  - Boligværdi
+  - Restgæld
+  - Rente
+  - Værdistigning
+  - Forventet lønstigning
+- Pensionsprognose
+- Flere overbliksdiagrammer med til/fra-knapper
+- Maskot-guide/tour
+- Top-navbar med flere sider:
+  - Budget
+  - Overblik
+  - Mål
+  - Rapporter
+- Ny overblik-side (`/overblik`) der læser snapshot-data fra budgetsiden
+
+## Teknologi
+
+- Next.js (App Router)
+- React
+- TypeScript
+- Tailwind CSS
+- ESLint
+- `xlsx` til import
+
+## Kom i gang
+
+### Krav
+
+- Node.js 18+ (anbefalet 20+)
+- npm
+
+### Installation
+
+```bash
+npm install
+```
+
+### Kør lokalt
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Åbn `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run dev     # Start udviklingsserver
+npm run build   # Build til produktion
+npm run start   # Start produktion build
+npm run lint    # Kør lint
+```
 
-## Learn More
+## Projektstruktur
 
-To learn more about Next.js, take a look at the following resources:
+- `app/page.tsx` - Forside (budget)
+- `app/overblik/page.tsx` - Overbliksside
+- `app/maal/page.tsx` - Placeholder side
+- `app/rapporter/page.tsx` - Placeholder side
+- `app/components/savings-projection.tsx` - Hovedlogik for budget/prognose
+- `app/components/finance-overview-dashboard.tsx` - Dashboard-komponent til overblikssiden
+- `app/components/top-navbar.tsx` - Topnavigation
+- `app/components/site-mascot.tsx` - Guide-maskot
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Data og lagring
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Appen gemmer brugerindstillinger og snapshot-data i browserens `localStorage`, fx:
 
-## Deploy on Vercel
+- `myfinance.sidebarVisible`
+- `myfinance.darkMode`
+- `myfinance.hiddenBudgetFields`
+- `myfinance.periodTogglesEnabled`
+- `myfinance.sectionOrder`
+- `myfinance.overviewChartsVisible`
+- `myfinance.overviewSnapshot`
+- `myfinance.mascotTourSeen`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## GitHub (manual opsætning)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Hvis du vil pushe projektet til GitHub:
+
+```bash
+git add .
+git commit -m "Initial MyFinance setup"
+git branch -M main
+git remote add origin <DIN_GITHUB_REPO_URL>
+git push -u origin main
+```
+
+Eksempel på URL:
+
+- `https://github.com/<brugernavn>/<repo>.git`
