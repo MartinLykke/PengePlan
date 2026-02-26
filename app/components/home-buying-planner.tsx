@@ -143,7 +143,7 @@ export function HomeBuyingPlanner() {
   if (!snapshot) {
     return (
       <section className={`mt-4 rounded-2xl border p-6 shadow-[0_18px_44px_-26px_rgba(2,6,23,0.45)] ${isDarkMode ? "border-slate-700/70 bg-slate-900/90" : "border-cyan-100 bg-white/88"}`}>
-        <h1 className={`text-lg font-bold ${isDarkMode ? "text-slate-100" : "text-slate-900"}`}>Boligkoeb</h1>
+        <h1 className={`text-lg font-bold ${isDarkMode ? "text-slate-100" : "text-slate-900"}`}>Boligkøb</h1>
         <p className={`mt-2 text-sm ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>Udfyld budget foerst. Saa kan siden beregne en realistisk max boligpris.</p>
         <Link href="/" className="mt-4 inline-flex rounded-full bg-cyan-600 px-4 py-2 text-sm font-semibold text-white hover:bg-cyan-500">
           Gaa til budget
@@ -155,7 +155,7 @@ export function HomeBuyingPlanner() {
   return (
     <section className="mt-4 space-y-4">
       <div className={`rounded-2xl border p-4 shadow-[0_18px_44px_-26px_rgba(2,6,23,0.45)] ${isDarkMode ? "border-slate-700/70 bg-slate-900/90" : "border-cyan-100 bg-white/88"}`}>
-        <h1 className={`text-xl font-bold ${isDarkMode ? "text-slate-100" : "text-slate-900"}`}>Boligkoeb</h1>
+        <h1 className={`text-xl font-bold ${isDarkMode ? "text-slate-100" : "text-slate-900"}`}>Boligkøb</h1>
         <p className={`mt-1 text-sm ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}>Vurder max boligpris ud fra din oekonomi, udbetaling og risikotest.</p>
       </div>
 

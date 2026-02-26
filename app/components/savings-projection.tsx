@@ -53,6 +53,101 @@ const OVERVIEW_CHARTS_STORAGE_KEY = "myfinance.overviewChartsVisible";
 const OVERVIEW_SNAPSHOT_STORAGE_KEY = "myfinance.overviewSnapshot";
 const CUSTOM_FIELDS_STORAGE_KEY = "myfinance.customBudgetFields";
 const OVERVIEW_HISTORY_STORAGE_KEY = "myfinance.overviewMonthlyHistory";
+const BUDGET_DRAFT_STORAGE_KEY = "myfinance.budgetDraft";
+
+type BudgetDraft = {
+  reportName: string;
+  incomeValues: Record<string, string>;
+  housingValues: Record<string, string>;
+  transportValues: Record<string, string>;
+  fixedValues: Record<string, string>;
+  budgetFieldPeriods: Record<string, BudgetFieldPeriod>;
+  startingSavingsInput: string;
+  homeValueInput: string;
+  mortgageDebtInput: string;
+  interestRateInput: string;
+  homeGrowthRateInput: string;
+  salaryGrowthRateInput: string;
+  pensionCurrentInput: string;
+  pensionMonthlyInput: string;
+  pensionReturnInput: string;
+  expectedMonthlySavingsInput: string;
+  includePensionInNetWorth: boolean;
+  selectedMonths: number;
+  pensionSelectedMonths: number;
+};
+
+function toStringRecord(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.entries(value).reduce<Record<string, string>>((acc, [key, entry]) => {
+    if (typeof entry === "string") {
+      acc[key] = entry;
+    }
+    return acc;
+  }, {});
+}
+
+function toPeriodRecord(value: unknown): Record<string, BudgetFieldPeriod> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.entries(value).reduce<Record<string, BudgetFieldPeriod>>((acc, [key, entry]) => {
+    if (entry === "monthly" || entry === "yearly") {
+      acc[key] = entry;
+    }
+    return acc;
+  }, {});
+}
+
+function toStringValue(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function toPositiveNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function readBudgetDraft(): BudgetDraft | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(BUDGET_DRAFT_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as Partial<BudgetDraft>;
+    return {
+      reportName: toStringValue(parsed.reportName),
+      incomeValues: toStringRecord(parsed.incomeValues),
+      housingValues: toStringRecord(parsed.housingValues),
+      transportValues: toStringRecord(parsed.transportValues),
+      fixedValues: toStringRecord(parsed.fixedValues),
+      budgetFieldPeriods: toPeriodRecord(parsed.budgetFieldPeriods),
+      startingSavingsInput: toStringValue(parsed.startingSavingsInput),
+      homeValueInput: toStringValue(parsed.homeValueInput),
+      mortgageDebtInput: toStringValue(parsed.mortgageDebtInput),
+      interestRateInput: toStringValue(parsed.interestRateInput),
+      homeGrowthRateInput: toStringValue(parsed.homeGrowthRateInput),
+      salaryGrowthRateInput: toStringValue(parsed.salaryGrowthRateInput),
+      pensionCurrentInput: toStringValue(parsed.pensionCurrentInput),
+      pensionMonthlyInput: toStringValue(parsed.pensionMonthlyInput),
+      pensionReturnInput: toStringValue(parsed.pensionReturnInput),
+      expectedMonthlySavingsInput: toStringValue(parsed.expectedMonthlySavingsInput),
+      includePensionInNetWorth: parsed.includePensionInNetWorth === true,
+      selectedMonths: toPositiveNumber(parsed.selectedMonths, 12),
+      pensionSelectedMonths: toPositiveNumber(parsed.pensionSelectedMonths, 12),
+    };
+  } catch {
+    return null;
+  }
+}
 
 type OverviewChartKey =
   | "expenseDonut"
@@ -795,10 +890,10 @@ function BudgetSection({
           className={`w-full rounded-lg border px-3 py-2 text-left text-sm font-semibold transition ${
             darkMode ? "border-slate-700 bg-slate-800/80 text-slate-100 hover:bg-slate-700" : "border-sky-200 bg-sky-50/80 text-slate-800 hover:bg-sky-100"
           }`}
-          aria-label={`Tilfoej felt i ${title}`}
-          title={`Tilfoej felt i ${title}`}
+          aria-label={`Tilføj felt i ${title}`}
+          title={`Tilføj felt i ${title}`}
         >
-          + Tilfoej felt
+          + Tilføj felt
         </button>
       </div>
       ) : null}
@@ -1057,10 +1152,11 @@ type SavingsProjectionProps = {
 };
 
 export function SavingsProjection({ reportName = "", onReportNameChange }: SavingsProjectionProps) {
-  const [incomeValues, setIncomeValues] = useState<Record<string, string>>({});
-  const [housingValues, setHousingValues] = useState<Record<string, string>>({});
-  const [transportValues, setTransportValues] = useState<Record<string, string>>({});
-  const [fixedValues, setFixedValues] = useState<Record<string, string>>({});
+  const savedBudgetDraft = useMemo(() => readBudgetDraft(), []);
+  const [incomeValues, setIncomeValues] = useState<Record<string, string>>(() => savedBudgetDraft?.incomeValues ?? {});
+  const [housingValues, setHousingValues] = useState<Record<string, string>>(() => savedBudgetDraft?.housingValues ?? {});
+  const [transportValues, setTransportValues] = useState<Record<string, string>>(() => savedBudgetDraft?.transportValues ?? {});
+  const [fixedValues, setFixedValues] = useState<Record<string, string>>(() => savedBudgetDraft?.fixedValues ?? {});
   const [customBudgetFields, setCustomBudgetFields] = useState<Record<BudgetFieldSection, FieldConfig[]>>(() => {
     const fallback: Record<BudgetFieldSection, FieldConfig[]> = {
       income: [],
@@ -1109,18 +1205,18 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
       return fallback;
     }
   });
-  const [budgetFieldPeriods, setBudgetFieldPeriods] = useState<Record<string, BudgetFieldPeriod>>({});
-  const [startingSavingsInput, setStartingSavingsInput] = useState("");
-  const [homeValueInput, setHomeValueInput] = useState("");
-  const [mortgageDebtInput, setMortgageDebtInput] = useState("");
-  const [interestRateInput, setInterestRateInput] = useState("");
-  const [homeGrowthRateInput, setHomeGrowthRateInput] = useState("");
-  const [salaryGrowthRateInput, setSalaryGrowthRateInput] = useState("");
-  const [pensionCurrentInput, setPensionCurrentInput] = useState("");
-  const [pensionMonthlyInput, setPensionMonthlyInput] = useState("");
-  const [pensionReturnInput, setPensionReturnInput] = useState("");
-  const [expectedMonthlySavingsInput, setExpectedMonthlySavingsInput] = useState("");
-  const [includePensionInNetWorth, setIncludePensionInNetWorth] = useState(false);
+  const [budgetFieldPeriods, setBudgetFieldPeriods] = useState<Record<string, BudgetFieldPeriod>>(() => savedBudgetDraft?.budgetFieldPeriods ?? {});
+  const [startingSavingsInput, setStartingSavingsInput] = useState(() => savedBudgetDraft?.startingSavingsInput ?? "");
+  const [homeValueInput, setHomeValueInput] = useState(() => savedBudgetDraft?.homeValueInput ?? "");
+  const [mortgageDebtInput, setMortgageDebtInput] = useState(() => savedBudgetDraft?.mortgageDebtInput ?? "");
+  const [interestRateInput, setInterestRateInput] = useState(() => savedBudgetDraft?.interestRateInput ?? "");
+  const [homeGrowthRateInput, setHomeGrowthRateInput] = useState(() => savedBudgetDraft?.homeGrowthRateInput ?? "");
+  const [salaryGrowthRateInput, setSalaryGrowthRateInput] = useState(() => savedBudgetDraft?.salaryGrowthRateInput ?? "");
+  const [pensionCurrentInput, setPensionCurrentInput] = useState(() => savedBudgetDraft?.pensionCurrentInput ?? "");
+  const [pensionMonthlyInput, setPensionMonthlyInput] = useState(() => savedBudgetDraft?.pensionMonthlyInput ?? "");
+  const [pensionReturnInput, setPensionReturnInput] = useState(() => savedBudgetDraft?.pensionReturnInput ?? "");
+  const [expectedMonthlySavingsInput, setExpectedMonthlySavingsInput] = useState(() => savedBudgetDraft?.expectedMonthlySavingsInput ?? "");
+  const [includePensionInNetWorth, setIncludePensionInNetWorth] = useState(() => savedBudgetDraft?.includePensionInNetWorth ?? false);
   const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(() => {
     if (typeof window === "undefined") {
       return true;
@@ -1142,9 +1238,8 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
 
     return window.localStorage.getItem(DARK_MODE_STORAGE_KEY) !== null;
   });
-  const [selectedMonths, setSelectedMonths] = useState(12);
-  const [pensionSelectedMonths, setPensionSelectedMonths] = useState(12);
-  const [importStatus, setImportStatus] = useState("");
+  const [selectedMonths, setSelectedMonths] = useState(() => savedBudgetDraft?.selectedMonths ?? 12);
+  const [pensionSelectedMonths, setPensionSelectedMonths] = useState(() => savedBudgetDraft?.pensionSelectedMonths ?? 12);
   const [importFeedback, setImportFeedback] = useState<{ type: ImportFeedbackType; message: string } | null>(null);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -1293,6 +1388,8 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
   const [dropTargetMidPageCard, setDropTargetMidPageCard] = useState<MidPageCard | null>(null);
   const [draggedLowerPageCard, setDraggedLowerPageCard] = useState<LowerPageCard | null>(null);
   const [dropTargetLowerPageCard, setDropTargetLowerPageCard] = useState<LowerPageCard | null>(null);
+  const [isWealthAssumptionsCollapsed, setIsWealthAssumptionsCollapsed] = useState(false);
+  const [isPensionCardCollapsed, setIsPensionCardCollapsed] = useState(false);
   const [isPageReady, setIsPageReady] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<BudgetFieldSection, boolean>>(() => {
     const fallback: Record<BudgetFieldSection, boolean> = {
@@ -1494,7 +1591,6 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    setImportStatus("Data eksporteret til CSV.");
     setImportFeedback({ type: "info", message: "CSV er eksporteret." });
   };
 
@@ -1505,7 +1601,6 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
     }
 
     try {
-      setImportStatus("Importerer data fra Excel...");
       setImportFeedback({ type: "info", message: "Importerer data..." });
 
       const xlsx = await import("xlsx");
@@ -1705,10 +1800,8 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
       }
       onReportNameChange?.(nextReportName);
 
-      setImportStatus("Import gennemført.");
       setImportFeedback({ type: "success", message: "Import lykkedes. Budgettet er opdateret." });
     } catch {
-      setImportStatus("Import fejlede. Kontroller at filen er .xlsx/.xls/.csv og at pakken xlsx er installeret.");
       setImportFeedback({ type: "error", message: "Import fejlede. Tjek filformatet og prøv igen." });
     }
 
@@ -1750,6 +1843,64 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
       setIncludePensionInNetWorth(false);
     }
   }, [hasCompletePensionInputs, includePensionInNetWorth]);
+
+  useEffect(() => {
+    if (!onReportNameChange || reportName.trim() || !savedBudgetDraft?.reportName.trim()) {
+      return;
+    }
+
+    onReportNameChange(savedBudgetDraft.reportName);
+  }, [onReportNameChange, reportName, savedBudgetDraft]);
+
+  useEffect(() => {
+    const draft: BudgetDraft = {
+      reportName,
+      incomeValues,
+      housingValues,
+      transportValues,
+      fixedValues,
+      budgetFieldPeriods,
+      startingSavingsInput,
+      homeValueInput,
+      mortgageDebtInput,
+      interestRateInput,
+      homeGrowthRateInput,
+      salaryGrowthRateInput,
+      pensionCurrentInput,
+      pensionMonthlyInput,
+      pensionReturnInput,
+      expectedMonthlySavingsInput,
+      includePensionInNetWorth,
+      selectedMonths,
+      pensionSelectedMonths,
+    };
+
+    try {
+      window.localStorage.setItem(BUDGET_DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch {
+      // Ignore storage quota/write errors.
+    }
+  }, [
+    budgetFieldPeriods,
+    expectedMonthlySavingsInput,
+    fixedValues,
+    homeGrowthRateInput,
+    homeValueInput,
+    housingValues,
+    includePensionInNetWorth,
+    incomeValues,
+    interestRateInput,
+    mortgageDebtInput,
+    pensionCurrentInput,
+    pensionMonthlyInput,
+    pensionReturnInput,
+    pensionSelectedMonths,
+    reportName,
+    salaryGrowthRateInput,
+    selectedMonths,
+    startingSavingsInput,
+    transportValues,
+  ]);
 
   useEffect(() => {
     window.localStorage.setItem(HIDDEN_FIELDS_STORAGE_KEY, JSON.stringify(hiddenBudgetFields));
@@ -1906,7 +2057,6 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
     setPensionMonthlyInput("");
     setPensionReturnInput("");
     setIncludePensionInNetWorth(false);
-    setImportStatus("");
     setImportFeedback(null);
     onReportNameChange?.("");
   };
@@ -2179,58 +2329,8 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
   const housingScore = clamp((65 - housingShare) * 1.1, 0, 35);
   const debtScore = clamp((80 - debtToIncomeShare) * 0.25, 0, 20);
   const economicHealthScore = Math.round(disposableScore + housingScore + debtScore);
-  const healthToneClass =
-    economicHealthScore >= 75
-      ? "text-emerald-700 bg-emerald-50"
-      : economicHealthScore >= 55
-        ? "text-amber-700 bg-amber-50"
-        : "text-rose-700 bg-rose-50";
   const healthStatus =
     economicHealthScore >= 75 ? "Stærk" : economicHealthScore >= 55 ? "Middel" : "Presset";
-  const insightItems = useMemo(() => {
-    const entries: { icon: string; text: string; className: string }[] = [];
-
-    if (housingShare > 65) {
-      entries.push({
-        icon: "⚠️",
-        text: "Boligudgift er meget høj i forhold til indkomst.",
-        className: "text-rose-700",
-      });
-    } else if (housingShare >= 55) {
-      entries.push({
-        icon: "⚠️",
-        text: "Boligudgift er i den høje ende. Hold øje med rådighedsbeløbet.",
-        className: "text-amber-700",
-      });
-    }
-
-    if (transportExpenses > 0) {
-      const potential = Math.round(transportExpenses * 0.15);
-      entries.push({
-        icon: "💡",
-        text: `Mulig besparelse: ${formatCurrency(potential)} ved 15% lavere transport.`,
-        className: "text-amber-700",
-      });
-    }
-
-    if (disposableShare >= 20 && housingShare <= 55) {
-      entries.push({
-        icon: "✅",
-        text: "Økonomien ser sund ud.",
-        className: "text-emerald-700",
-      });
-    }
-
-    if (entries.length === 0) {
-      entries.push({
-        icon: "ℹ️",
-        text: "Indtast flere tal for personlige insights.",
-        className: "text-zinc-600",
-      });
-    }
-
-    return entries.slice(0, 3);
-  }, [disposableShare, housingShare, transportExpenses]);
   const netWorthSeries = useMemo(
     () => [
       {
@@ -2574,28 +2674,6 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
           </span>
         </button>
 
-        {importStatus ? (
-          <div
-            className={`ml-1 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-[0_10px_22px_-16px_rgba(2,6,23,0.55)] transition-all duration-500 ${
-              importFeedback?.type === "success"
-                ? isDarkMode
-                  ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-200 animate-pulse"
-                  : "border-emerald-300 bg-emerald-50 text-emerald-800 animate-pulse"
-                : importFeedback?.type === "error"
-                  ? isDarkMode
-                    ? "border-rose-500/60 bg-rose-500/15 text-rose-200"
-                    : "border-rose-300 bg-rose-50 text-rose-800"
-                  : isDarkMode
-                    ? "border-slate-600 bg-slate-800/80 text-slate-200"
-                    : "border-slate-200 bg-white/90 text-zinc-600"
-            }`}
-          >
-            <span aria-hidden="true">
-              {importFeedback?.type === "success" ? "✓" : importFeedback?.type === "error" ? "!" : "i"}
-            </span>
-            <span>{importFeedback?.message ?? importStatus}</span>
-          </div>
-        ) : null}
         </div>
       </div>
 
@@ -2754,10 +2832,24 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
           }`}
           style={{ order: midPageCardOrder.indexOf("wealthAssumptions") }}
         >
-          <h2 className={`flex items-center gap-2 text-sm font-semibold uppercase tracking-wide ${isDarkMode ? "text-slate-100" : "text-zinc-900"}`}>
-            <span>🏠</span>
-            Formueforudsætninger
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className={`flex items-center gap-2 text-sm font-semibold uppercase tracking-wide ${isDarkMode ? "text-slate-100" : "text-zinc-900"}`}>
+              <span>🏠</span>
+              Formueforudsætninger
+            </h2>
+            <button
+              type="button"
+              onClick={() => setIsWealthAssumptionsCollapsed((current) => !current)}
+              className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition ${
+                isDarkMode ? "bg-slate-800 text-slate-100 hover:bg-slate-700" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+              aria-label={isWealthAssumptionsCollapsed ? "Udvid formueforudsætninger" : "Kollaps formueforudsætninger"}
+              title={isWealthAssumptionsCollapsed ? "Udvid formueforudsætninger" : "Kollaps formueforudsætninger"}
+            >
+              {isWealthAssumptionsCollapsed ? "+" : "-"}
+            </button>
+          </div>
+          {!isWealthAssumptionsCollapsed ? (
           <div className="mt-3 grid gap-3 md:grid-cols-2">
           <div className={`flex flex-col gap-1.5 text-sm font-medium ${isDarkMode ? "text-slate-200" : "text-zinc-700"}`}>
             <div className="relative">
@@ -2953,6 +3045,7 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
             </div>
           </div>
           </div>
+          ) : null}
         </div>
 
         <div
@@ -2992,10 +3085,25 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
           }`}
           style={{ order: midPageCardOrder.indexOf("pension") }}
         >
-          <h2 className={`flex items-center gap-2 text-sm font-semibold uppercase tracking-wide ${isDarkMode ? "text-slate-100" : "text-zinc-900"}`}>
-            <span>📈</span>
-            Pensionsopsparing
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className={`flex items-center gap-2 text-sm font-semibold uppercase tracking-wide ${isDarkMode ? "text-slate-100" : "text-zinc-900"}`}>
+              <span>📈</span>
+              Pensionsopsparing
+            </h2>
+            <button
+              type="button"
+              onClick={() => setIsPensionCardCollapsed((current) => !current)}
+              className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition ${
+                isDarkMode ? "bg-slate-800 text-slate-100 hover:bg-slate-700" : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
+              aria-label={isPensionCardCollapsed ? "Udvid pensionsopsparing" : "Kollaps pensionsopsparing"}
+              title={isPensionCardCollapsed ? "Udvid pensionsopsparing" : "Kollaps pensionsopsparing"}
+            >
+              {isPensionCardCollapsed ? "+" : "-"}
+            </button>
+          </div>
+          {!isPensionCardCollapsed ? (
+          <>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
           <div className={`flex flex-col gap-1.5 text-sm font-medium ${isDarkMode ? "text-slate-200" : "text-zinc-700"}`}>
             <div className="relative">
@@ -3090,6 +3198,8 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
               <span className={isDarkMode ? "font-semibold text-slate-100" : "font-semibold text-zinc-900"}>{formatCurrency(finalPension)}</span>
             </p>
           </div>
+          </>
+          ) : null}
         </div>
       </div>
 
@@ -3259,7 +3369,7 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
         </div>
       )}
 
-      {hasOverviewData ? (
+      {false && hasOverviewData ? (
         <div
           draggable
           onDragStart={(event: DragEvent<HTMLDivElement>) => {
@@ -3298,7 +3408,7 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className={`text-sm font-semibold uppercase tracking-wide ${isDarkMode ? "text-slate-100" : "text-zinc-900"}`}>Flere Diagrammer</h2>
+              <h2 className={`text-sm font-semibold uppercase tracking-wide ${isDarkMode ? "text-slate-100" : "text-zinc-900"}`}>Overbliksdiagrammer</h2>
               <p className={`mt-1 text-xs ${isDarkMode ? "text-slate-300" : "text-zinc-600"}`}>Vaelg selv hvilke overbliksdiagrammer du vil se.</p>
             </div>
             <button
@@ -3621,27 +3731,6 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
                   <p className="mt-1 text-xs font-medium">{disposableShare.toFixed(0)}% af nettoindkomst</p>
                 </div>
 
-                <div className={`rounded-xl px-4 py-3 ${healthToneClass}`}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide">Økonomisk sundhedsscore</p>
-                  <p className="mt-1 text-3xl font-bold">{economicHealthScore}/100</p>
-                  <p className="mt-1 text-xs font-medium">Status: {healthStatus}</p>
-                </div>
-
-                <div
-                  className={`space-y-2 rounded-xl px-3 py-3 text-sm ${
-                    isDarkMode ? "bg-slate-800/80 text-slate-200" : "bg-sky-50/55 text-slate-700"
-                  }`}
-                >
-                  <p className="flex items-center justify-between">
-                    <span>💰 Samlede indtægter</span>
-                    <span className={isDarkMode ? "font-semibold text-slate-100" : "font-semibold text-zinc-900"}>{formatCurrency(monthlyIncome)}</span>
-                  </p>
-                  <p className="flex items-center justify-between">
-                    <span>💸 Samlede udgifter</span>
-                    <span className={isDarkMode ? "font-semibold text-slate-100" : "font-semibold text-zinc-900"}>{formatCurrency(monthlyExpenses)}</span>
-                  </p>
-                </div>
-
                 <div className={`rounded-xl px-3 py-3 ${isDarkMode ? "bg-slate-800/80" : "bg-white/80"}`}>
                   <p className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? "text-slate-200" : "text-zinc-700"}`}>Udgiftsfordeling (top 3)</p>
                   <div className={`mt-2 space-y-1.5 text-sm ${isDarkMode ? "text-slate-200" : "text-zinc-700"}`}>
@@ -3676,35 +3765,6 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
                   {monthsToTarget !== null ? <p className="mt-1">{monthsToTarget} måneder til 250.000 kr</p> : null}
                 </div>
 
-                <div className={`rounded-xl px-3 py-3 ${isDarkMode ? "bg-slate-800/80" : "bg-white/80"}`}>
-                  <p className={`text-xs font-semibold uppercase tracking-wide ${isDarkMode ? "text-slate-200" : "text-zinc-700"}`}>Advarsler / insights</p>
-                  <div className="mt-2 space-y-1.5 text-sm">
-                    {insightItems.map((entry, index) => (
-                      <p key={`${entry.text}-${index}`} className={entry.className}>
-                        {entry.icon} {entry.text}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-
-                <div
-                  className={`rounded-xl px-3 py-3 text-xs ${
-                    isDarkMode ? "bg-slate-800/80 text-slate-300" : "bg-sky-50/55 text-slate-600"
-                  }`}
-                >
-                  <p className="flex items-center justify-between">
-                    <span>Nettoformue nu</span>
-                    <span className={isDarkMode ? "font-semibold text-slate-100" : "font-semibold text-zinc-900"}>
-                      {formatCurrency(startingSavings + homeValue - mortgageDebt)}
-                    </span>
-                  </p>
-                  <p className="mt-1 flex items-center justify-between">
-                    <span>Gældsprocent</span>
-                    <span className={isDarkMode ? "font-semibold text-slate-100" : "font-semibold text-zinc-900"}>
-                      {monthlyIncome > 0 ? ((mortgageDebt / (monthlyIncome * 12)) * 100).toFixed(0) : "0"}%
-                    </span>
-                  </p>
-                </div>
               </>
             ) : (
               <div
@@ -3722,7 +3782,3 @@ export function SavingsProjection({ reportName = "", onReportNameChange }: Savin
     </div>
   );
 }
-
-
-
-

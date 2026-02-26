@@ -13,10 +13,11 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Budget", icon: "M3 6h18M3 12h18M3 18h18" },
   { href: "/overblik", label: "Overblik", icon: "M4 16l5-5 4 4 7-8" },
-  { href: "/boligkob", label: "Boligkoeb", icon: "M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" },
+  { href: "/boligkob", label: "Boligkøb", icon: "M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" },
+  { href: "/renovering", label: "Renovering", icon: "M4 20h16M6 20V9l6-5 6 5v11M10 20v-6h4v6" },
   { href: "/historik", label: "Historik", icon: "M12 8v5l3 3M12 3a9 9 0 1 0 9 9 9 9 0 0 0-9-9Z" },
   { href: "/tilbud", label: "Tilbud", icon: "M3 6h18M6 12h12M9 18h6" },
-  { href: "/maal", label: "Maal", icon: "M12 3v18M3 12h18" },
+  { href: "/maal", label: "Mål", icon: "M12 3v18M3 12h18" },
   { href: "/rapporter", label: "Rapporter", icon: "M6 3h9l3 3v15H6z M15 3v3h3" },
 ];
 
@@ -79,3 +80,4 @@ export function TopNavbar() {
     </header>
   );
 }
+
